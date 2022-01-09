@@ -1,0 +1,430 @@
+##enable_registration: true
+
+######################
+# Matrix config items #
+#######################
+# Matrix domain, same as the domain configure in your Homeserver configuration.
+# NOTE: in Synapse Homeserver, the Matrix domain is defined as 'server_name' in configuration file.
+#
+# This is used to build the various identifiers in all the features.
+#
+# If the hostname of the public URL used to reach your Matrix services is different from your Matrix domain,
+# per example matrix.domain.tld vs domain.tld, then use the server.name configuration option.
+# See the "Configure" section of the Getting Started guide for more info.
+#
+matrix:
+  domain: ''
+  v1: true
+  v2: true
+
+###########################################
+# Subconfig: Matrix Identity servers list
+###########################################
+#
+# matrix.identity.servers Namespace to create arbitrary list of Identity servers, usable in other parts of 
+# the configuration
+#
+# Create a list under the label myOtherServers containing two Identity servers: https://other1.example.org 
+# and https://other2.example.org.
+#
+#  identity:
+#    servers:
+#      myOtherServers:
+#        - 'https://other1.example.org'
+#        - 'https://other2.example.org'
+#
+
+
+
+#######################################
+# Server
+#######################################
+#
+#    server.name: Public hostname of ma1sd, if different from the Matrix domain.
+#    server.port: HTTP port to listen on (unencrypted)
+#    server.publicUrl: Defaults to https://{server.name}
+
+server:
+#  name: example.com
+  publicUrl: ''
+
+
+################
+# Signing keys #
+################
+# Absolute path for the Identity Server signing keys database.
+# /!\ THIS MUST **NOT** BE YOUR HOMESERVER KEYS FILE /!\
+# If this path does not exist, it will be auto-generated.
+#
+# During testing, /var/tmp/ma1sd/keys is a possible value
+# For production, recommended location shall be one of the following:
+#   - /var/lib/ma1sd/keys
+#   - /var/opt/ma1sd/keys
+#   - /var/local/ma1sd/keys
+#
+
+key:
+## From spantaleev
+#  path: /var/ma1sd/sign.key
+  path: /var/lib/ma1sd/keys
+
+
+storage:
+  backend: postgresql
+  provider:
+    postgresql: ''
+  
+#      # Pool configuration for postgresql backend.
+#      #######
+#      # Enable or disable pooling
+#      pool: false
+#
+#      #######
+#      # Check database connection before get from pool
+#      testBeforeGetFromPool: false # or true
+#
+#      #######
+#      # There is an internal thread which checks each of the database connections as a keep-alive mechanism. This set the
+#      # number of milliseconds it sleeps between checks -- default is 30000. To disable the checking thread, set this to
+#      # 0 before you start using the connection source.
+#      checkConnectionsEveryMillis: 30000
+#
+#      #######
+#      # Set the number of connections that can be unused in the available list.
+#      maxConnectionsFree: 5
+#
+#      #######
+#      # Set the number of milliseconds that a connection can stay open before being closed. Set to 9223372036854775807 to have
+#      # the connections never expire.
+#      maxConnectionAgeMillis: 3600000
+
+
+
+###################
+# Identity Stores #
+###################
+# If you are using synapse standalone and do not have an Identity store,
+# see https://github.com/ma1uta/ma1sd/blob/master/docs/stores/synapse.md#synapse-identity-store
+#
+# If you would like to integrate with your AD/Samba/LDAP server,
+# see https://github.com/ma1uta/ma1sd/blob/master/docs/stores/ldap.md
+#
+# For any other Identity store, or to simply discover them,
+# see https://github.com/ma1uta/ma1sd/blob/master/docs/stores/README.md
+
+
+###################
+# DNS Overwrite
+###################
+# Just like you need to configure a reverse proxy to send client requests to ma1sd,
+# you also need to configure ma1sd with the internal IP of the Homeserver so it can talk to it directly 
+# to integrate its directory search.
+#
+# To do so, put the following configuration in your ma1sd configuration:
+#
+#dns:
+#  overwrite:
+#    homeserver:
+#      client:#
+#        - name: "example.org"
+#          value: "http://localhost:8008"
+#
+# name must be the hostname of the URL that clients use when connecting to the Homeserver. You can use ${server.name} to
+# auto-populate the value using the server.name configuration option and avoid duplicating it. In case the hostname is
+# the same as your Matrix domain and server.name is not explicitely set in the config, server.name will default to
+# matrix.domain and will still probably have the correct value.
+#
+# value is the base internal URL of the Homeserver, without any /_matrix/.. or trailing /.
+#
+# Spentaleev comment:
+# DNS overwrites are useful for telling ma1sd how it can reach the homeserver directly.
+# Useful when reverse-proxying certain URLs (e.g. `/_matrix/client/r0/user_directory/search`) to ma1sd,
+# so that ma1sd can rewrite the original URL to one that would reach the homeserver.
+
+dns:
+  overwrite:
+    homeserver:
+      client: ''
+
+
+
+#######################
+# Features: Identity
+######################
+# Lookups
+# If you would like to use the central matrix.org Identity server to ensure maximum discovery at the cost of
+# potentially leaking all your contacts information, add the following to your configuration:
+#
+#forward:
+#  servers:
+#    - 'matrix-org'
+#
+# NOTE: You should carefully consider enabling this option, which is discouraged.
+#
+# Spentaleev comment:
+# Your identity server is private by default.
+# To ensure maximum discovery, you can make your identity server
+# also forward lookups to the central matrix.org Identity server
+# (at the cost of potentially leaking all your contacts information).
+# Enabling this is discouraged. Learn more here: https://github.com/ma1uta/ma1sd/blob/master/docs/features/identity.md#lookups
+
+
+############################
+# Federation
+############################
+#
+# https://github.com/ma1uta/ma1sd/blob/master/docs/features/federation.md
+#
+# Inbound
+#
+# If you would like to be reachable for lookups over federation, create the following DNS SRV entry and
+# replace matrix.example.com by your Identity server public hostname:
+#
+# _matrix-identity._tcp.example.com. 3600 IN SRV 10 0 443 matrix.example.com.
+#
+# The port must be HTTPS capable which is what you get in a regular setup with a reverse proxy from 443 to TCP 8090 of ma1sd.
+#
+#
+# Outbound (Auto Enabled by Default)
+#
+# If you would like to disable outbound federation and isolate your identity server from the rest of
+# the Matrix network, use the following ma1sd configuration options:
+#
+#lookup:
+#  recursive:
+#    enabled: false
+#invite:
+#  resolution:
+#    recursive: false
+#
+# There is currently no way to selectively disable federation towards specific servers, but this feature is planned.
+
+
+#################################################
+# Notifications for invites/addition to profile #
+#################################################
+# This is mandatory to deal with anything e-mail related.
+#
+# For an introduction to sessions, invites and 3PIDs in general,
+# see https://github.com/ma1uta/ma1sd/blob/master/docs/threepids/session/session.md#3pid-sessions
+#
+# If you would like to change the content of the notifications,
+# see https://github.com/ma1uta/ma1sd/blob/master/docs/threepids/notification/template-generator.md
+#
+#### E-mail connector
+threepid:
+  medium:
+    email:
+      identity: 'IDM_3PID_EMAIL_IDENTITY'
+
+      connectors:
+        smtp: 'IDM_3PID_SMTP_CONNECTOR'
+
+
+### Email Custom Template
+#
+## Enable if custom template is necessary
+#
+#      generators:
+#        template:
+#          invite: '/etc/ma1sd/invite-template.eml'
+#          session:
+#            validation: '/etc/ma1sd/validate-template.eml'
+#            unbind:
+#              notification: '/etc/ma1sd/unbind-notification.eml'
+#          generic:
+#            matrixId: '/etc/ma1sd/mxid-template.eml'
+#
+
+####################################
+# 3PID Session
+###################################
+#
+# session.policy.validation is the core configuration to control what users configured to use your
+# Identity server are allowed to do in terms of 3PID sessions. The policy has a global on/off switch
+# for 3PID sessions using .enabled
+#
+# unbind controls warning notifications for 3PID removal. Setting notifications for unbind to false 
+# will prevent unbind emails from sending.
+#
+#session:
+#  policy:
+#    validation:
+#      enabled: true
+#    unbind:
+#      notifications: true
+#      enabled: true
+#
+#
+
+#####################################
+# 3PID Session : Web pages
+#####################################
+#
+# Configuration
+#
+# Pseudo-configuration to illustrate the structure:
+#
+#view:
+#  session:
+#    onTokenSubmit:
+#      success: '/etc/ma1sd/tokenSubmitSuccess.html'
+#      failure: '/etc/ma1sd/tokenSubmitFailure.html'
+#
+# view.session: This is triggered when a user submit a validation token for a 3PID session.
+# It is typically visited when clicking the link in a validation email.
+#
+# The template should typically inform the user that the validation was successful and to go back 
+# in their Matrix client to finish the validation process, or that the validation failed.
+#
+# Two configuration keys are available that accept paths to HTML templates: 1) success   2) failure
+# https://github.com/ma1uta/ma1sd/blob/master/docs/threepids/session/session-views.md
+#
+
+
+###################################################################
+# Notification Handler (Not sure if 3PID smtp will be sufficient)
+###################################################################
+#
+# https://github.com/ma1uta/ma1sd/blob/master/docs/configure.md
+# https://github.com/ma1uta/ma1sd/blob/master/docs/threepids/notification/sendgrid-handler.md
+#
+#notification:
+#  handler:
+#    email: 'sendgrid'
+#  handlers:
+#    sendgrid:
+#      api:
+#        key: "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"
+#      identity:
+#        from: "no-reply@merdeka.one"
+#        name: "Matrix - Identity"
+#      templates:
+#        invite:
+#          subject: "You are invited to join a room"
+#          body:
+#            text: <Path to file containing the raw text part of the email. Do not set to not use one>
+#            html: <Path to file containing the HTML part of the email. Do not set to not use one>
+#        session:
+#          validation:
+#            subject: "Please validate your identity"
+#            body:
+#              text: <Path to file containing the raw text part of the email. Do not set to not use one>
+#              html: <Path to file containing the HTML part of the email. Do not set to not use one>
+#          unbind:
+#            notification:
+#              subject: "Please validate to unbind your identity"
+#              body:
+#                text: <Path to file containing the raw text part of the email. Do not set to not use one>
+#                html: <Path to file containing the raw text part of the email. Do not set to not use one>
+#
+
+
+#### MSC2134 (hash lookup)
+
+#hashing:
+#  enabled: false # enable or disable the hash lookup MSC2140 (default is false)
+#  pepperLength: 20 # length of the pepper value (default is 20)
+#  rotationPolicy: per_requests # or `per_seconds` how often the hashes will be updating
+#  hashStorageType: sql # or `in_memory` where the hashes will be stored
+#  algorithms:
+#    - none   # the same as v1 bulk lookup
+#    - sha256 # hash the 3PID and pepper.
+#  delay: 2m # how often hashes will be updated if rotation policy = per_seconds (default is 10s)
+#  requests: 10 # how many lookup requests will be performed before updating hashes if rotation policy = per_requests (default is 10)
+
+hashing:
+  enabled: true  # enable or disable the hash lookup MSC2140 (default is false)
+  pepperLength: 20  # length of the pepper value (default is 20)
+  rotationPolicy: per_requests  # or `per_seconds` how often the hashes will be updating
+  hashStorageType: sql  # or `in_memory` where the hashes will be stored
+  algorithms:
+    - none   # the same as v1 bulk lookup
+    - sha256 # hash the 3PID and pepper.
+  delay: 2m  # how often hashes will be updated if rotation policy = per_seconds (default is 10s)
+  requests: 10  # how many lookup requests will be performed before updating hashes if rotation policy = per_requests (default is 10)
+
+
+### hash lookup for synapseSql provider.
+# synapseSql:
+#   lookup:
+#     query: 'select user_id as mxid, medium, address from user_threepid_id_server' # query for retrive 3PIDs for hashes.
+#   legacyRoomNames: false  # use the old query to get room names.
+#
+# ma1sd has serveral supported identity stores.
+# One of them is storing identities directly in Synapse's database.
+# Learn more here: https://github.com/ma1uta/ma1sd/blob/master/docs/stores/synapse.md
+# Use Synapse Postgres DB as identity store
+
+synapseSql: ''
+
+
+### hash lookup for ldap provider (with example of the ldap configuration)
+# ldap:
+#   enabled: true
+#   lookup: true # hash lookup
+#   activeDirectory: false
+#   defaultDomain: ''
+#   connection:
+#     host: 'ldap.domain.tld'
+#     port: 389
+#     bindDn: 'cn=admin,dc=domain,dc=tld'
+#     bindPassword: 'Secret'
+#     baseDNs:
+#       - 'dc=domain,dc=tld'
+#   attribute:
+#     uid:
+#       type: 'uid' # or mxid
+#       value: 'cn'
+#     name: 'displayName'
+#   identity:
+#     filter: '(objectClass=inetOrgPerson)'
+
+#### MSC2140 (Terms)
+#policy:
+#  policies:
+#    term_name: # term name
+#      version: 1.0 # version
+#      terms:
+#        en:  # lang
+#          name: term name en  # localized name
+#          url: https://ma1sd.host.tld/term_en.html  # localized url
+#        fe:  # lang
+#          name: term name fr  # localized name
+#          url: https://ma1sd.host.tld/term_fr.html  # localized url
+#      regexp:
+#        - '/_matrix/identity/v2/account.*'
+#        - '/_matrix/identity/v2/hash_details'
+#        - '/_matrix/identity/v2/lookup'
+#
+
+# logging:
+#   root: error     # default level for all loggers (apps and thirdparty libraries)
+#   app: info       # log level only for the ma1sd
+#   requests: false # or true to dump full requests and responses
+
+###########################
+# DEBUGGING ONLY DEV ENV
+###########################
+#
+# available values: trace, debug, info, warn, error, off
+
+#logging:
+#  root: error
+#  app: info
+#  requests: true 
+
+###########################
+
+
+# Config invitation manager
+#invite:
+#  fullDisplayName: true # print full name of the invited user (default false)
+#  resolution:
+#    timer: 10
+#    period: seconds # search invites every 10 seconds (by default 5 minutes)
+
+
+# Internal API
+#internal:
+#  enabled: true # default to false

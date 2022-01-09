@@ -1,0 +1,11 @@
+/.env
+
+/data/synapse/homeserver.yaml
+/data/synapse/homeserver.yaml-finalized
+/data/ma1sd/ma1sd.yaml
+/data/ma1sd/ma1sd.yaml-finalized
+/data/mautrix-telegram/config.yaml
+/data/mautrix-telegram/config.yaml-finalized
+/data/mautrix-whatsapp/config.yaml
+/data/mautrix-whatsapp/config.yaml-finalized
+

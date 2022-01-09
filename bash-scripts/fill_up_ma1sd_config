@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#source bash_data
+
+
+sed -i "s/domain: ''/domain: '${SERVER_NAME}'/" ${MA1SD_LOCAL_FOLDER}ma1sd.yaml-${FINAL_RC}
+
+sed -i "s/publicUrl: ''/publicUrl: '${SERVER_URL//\//\\/}'/" ${MA1SD_LOCAL_FOLDER}ma1sd.yaml-${FINAL_RC}
+
+sed -i "s/postgresql: ''/postgresql:\n${IDM_PGSQL//$'\n'/\\n}/" ${MA1SD_LOCAL_FOLDER}ma1sd.yaml-${FINAL_RC}
+
+
+
+sed -i "s/client: ''/client:\n${IDM_DNS_OVERWRITE//$'\n'/\\n}/" ${MA1SD_LOCAL_FOLDER}ma1sd.yaml-${FINAL_RC}
+
+sed -i "s/identity: 'IDM_3PID_EMAIL_IDENTITY'/identity:\n${IDM_3PID_EMAIL_IDENTITY//$'\n'/\\n}/" ${MA1SD_LOCAL_FOLDER}ma1sd.yaml-${FINAL_RC}
+
+sed -i "s/smtp: 'IDM_3PID_SMTP_CONNECTOR'/smtp:\n${IDM_3PID_SMTP_CONNECTOR//$'\n'/\\n}/" ${MA1SD_LOCAL_FOLDER}ma1sd.yaml-${FINAL_RC}
+
+sed -i "s/synapseSql: ''/synapseSql:\n${IDM_SYNAPSESQL//$'\n'/\\n}/" ${MA1SD_LOCAL_FOLDER}ma1sd.yaml-${FINAL_RC}
+
+
+

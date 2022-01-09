@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#source bash_data
+
+
+sed -i "s/address: ''/address: ${SERVER_URL//\//\\/}/" ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+
+sed -i "s/domain: ''/domain: '${SERVER_NAME}'/" ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+
+sed -i "s/uri: ''/uri: ${M_WHATSP_DB//\//\\/}/" ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+
+
+sed -i "s/double_puppet_server_map: ''/double_puppet_server_map:\n${M_WHATSP_PUPPET_SERVER_MAP//$'\n'/\\n}/" ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+
+sed -i "s/login_shared_secret_map: ''/login_shared_secret_map:\n${M_WHATSP_PUPPET_SECRET_MAP//$'\n'/\\n}/" ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+
+sed -i "s/permissions: ''/permissions:\n${M_WHATSP_PERMISSIONS//$'\n'/\\n}/" ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+

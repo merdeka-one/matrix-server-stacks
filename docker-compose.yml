@@ -1,0 +1,284 @@
+version: '3'
+services:
+    nginx-pxy-mgr-node:
+        build: "./nginx-proxy-manager/"
+        #image: "jc21/nginx-proxy-manager:latest"
+        container_name: nginx-pxy-mgr-${NODE}
+        restart: unless-stopped
+        hostname: "nginx-pxy-mgr-${NODE}"
+        depends_on:
+            - synapse
+            - id-ma1sd
+            - mautrix-telegram
+        networks:
+            - matrix-nodes
+            - matrix-synapse
+            - matrix-id
+#Enable if the setup is just for a single server, and remove expose: all items
+        ports:
+            - "80:80"
+            - "81:81"
+            - "443:443"
+            - "8443:8443"
+#        expose:
+#            - 80
+#            - 81
+#            - 443
+#            - 8443
+        volumes:
+            - data-nginx-pxy-mgr:/data
+            - data-nginx-pxy-mgr-letsencrypt:/etc/letsencrypt
+
+    synapse:
+        build: "./synapse/"
+        #image: "matrixdotorg/synapse:latest"
+        container_name: synapse-${NODE}
+        restart: unless-stopped
+        hostname: "synapse-${NODE}"
+        depends_on:
+            - db-postgres-synapse
+        networks:
+            - matrix-synapse
+            # For homeserver to ma1sd port 8090 (invite)
+            - matrix-id
+        expose:
+            - 8008
+#        tty: true
+#        stdin_open: true
+        volumes:
+            - data-synapse:/data
+            - ${PWD}/synapse/extensions/shared-secret-auth/shared_secret_authenticator.py:/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py 
+#            - ${PWD}/data/synapse/homeserver.yaml:/data/homeserver.yaml
+
+    db-postgres-synapse:
+        build: "./db-postgres-synapse/"
+        #image: "postgres:10-alpine"
+        container_name: db-postgres-synapse-${NODE}
+        #hostname: db-postgres-synapse-${NODE}
+        environment:
+            - POSTGRES_DB=synapse
+            - POSTGRES_USER=${POSTGRES_SYNAPSE_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_SYNAPSE_PASSWORD}
+            - POSTGRES_INITDB_ARGS='--encoding=UTF8'
+            - LC_COLLATE=C
+            - LC_CTYPE=C
+        restart: unless-stopped
+        networks:
+            - matrix-synapse
+            # For Identity Store Access
+            - matrix-id
+        expose:
+            - 5432
+        volumes:
+            - data-db-postgres-synapse:/var/lib/postgresql/data
+
+    synapse-admin:
+        container_name: synapse-admin-${NODE}
+        hostname: synapse-admin-${NODE}
+        build: "./synapse-admin/"
+#           ## context: https://github.com/Awesome-Technologies/synapse-admin.git
+#           # args:
+#           #     - NODE_OPTIONS="--max_old_space_size=1024"
+        depends_on:
+            - synapse
+        networks:
+            - matrix-synapse
+        expose:
+            - 8080
+        restart: unless-stopped
+
+    id-ma1sd:
+        build: "./id-ma1sd/"
+        #image: "ma1uta/ma1sd:latest"
+        container_name: id-ma1sd-${NODE}
+        #hostname: id-ma1sd-${NODE}
+#        environment:
+#            - MATRIX_DOMAIN=${MATRIX_HOSTNAME}
+        restart: unless-stopped
+        depends_on:
+            - synapse
+            - db-postgres-ma1sd
+        networks:
+            - matrix-id
+            # For homeserver to ma1sd port 8090 (invite)
+            - matrix-synapse
+        expose:
+            - 8090
+        volumes:
+            - data-id-ma1sd-etc:/etc/ma1sd
+            - data-id-ma1sd-var:/var/ma1sd
+          
+    db-postgres-ma1sd:
+        build: "./db-postgres-ma1sd/"
+        #image: "postgres:10-alpine"
+        container_name: db-postgres-ma1sd-${NODE}
+        #hostname: postgres-ma1sd-${NODE}
+        environment:
+            - POSTGRES_DB=ma1sd
+            - POSTGRES_USER=${POSTGRES_MA1SD_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_MA1SD_PASSWORD}
+            - POSTGRES_INITDB_ARGS='--encoding=UTF8'
+            - LC_COLLATE=C
+            - LC_CTYPE=C
+        restart: unless-stopped
+        networks:
+            - matrix-id
+        expose:
+            - 5432
+        volumes:
+            - data-db-postgres-ma1sd:/var/lib/postgresql/data
+
+### Bridges BEGIN ###
+
+    mautrix-telegram:
+        build: "./mautrix-telegram/"
+        #image: "dock.mau.dev/mautrix/telegram:latest"
+        container_name: mautrix-telegram-${NODE}
+        restart: unless-stopped
+        networks:
+            - matrix-synapse
+            - matrix-telegram
+        expose:
+            - 29317
+        volumes:
+            - data-mautrix-telegram:/data
+
+    db-postgres-mautrix-telegram:
+        build: "./db-postgres-mautrix-telegram/"
+        #image: "postgres:10-alpine"
+        container_name: db-postgres-mautrix-telegram-${NODE}
+        #hostname: postgres-telegram-${NODE}
+        environment:
+            - POSTGRES_DB=telegram
+            - POSTGRES_USER=${POSTGRES_TELEGRAM_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_TELEGRAM_PASSWORD}
+            - POSTGRES_INITDB_ARGS='--encoding=UTF8'
+            - LC_COLLATE=C
+            - LC_CTYPE=C
+        restart: unless-stopped
+        networks:
+            - matrix-telegram
+        expose:
+            - 5432
+        volumes:
+            - data-db-postgres-mautrix-telegram:/var/lib/postgresql/data
+
+
+    mautrix-whatsapp:
+        build: "./mautrix-whatsapp/"
+        #image: "dock.mau.dev/mautrix/whatsapp:latest"
+        container_name: mautrix-whatsapp-${NODE}
+        restart: unless-stopped
+        networks:
+            - matrix-synapse
+            - matrix-whatsapp
+        expose:
+            - 29317
+        volumes:
+            - data-mautrix-whatsapp:/data
+
+    db-postgres-mautrix-whatsapp:
+        build: "./db-postgres-mautrix-whatsapp/"
+        #image: "postgres:10-alpine"
+        container_name: db-postgres-mautrix-whatsapp-${NODE}
+        #hostname: postgres-whatsapp-${NODE}
+        environment:
+            - POSTGRES_DB=whatsapp
+            - POSTGRES_USER=${POSTGRES_WHATSAPP_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_WHATSAPP_PASSWORD}
+            - POSTGRES_INITDB_ARGS='--encoding=UTF8'
+            - LC_COLLATE=C
+            - LC_CTYPE=C
+        restart: unless-stopped
+        networks:
+            - matrix-whatsapp
+        expose:
+            - 5432
+        volumes:
+            - data-db-postgres-mautrix-whatsapp:/var/lib/postgresql/data
+
+
+#    benkuly-sms:
+#        build: "./benkuly-sms/"
+#        #image: "folivonet/matrix-sms-bridge:latest"
+#        container_name: benkuly-sms
+#        environment:
+#            - SPRING_CONFIG_ADDITIONAL_LOCATION=/config/application.yml
+#            #- SPRING_PROFILES_ACTIVE=initialsync
+#        expose:
+#            - 8080
+#        restart: on-faiure
+#        volumes:
+#            - data-benkuly-sms:/data
+#            - data-benkuly-sms-config:/config
+
+### Bridges ENDS ###
+
+# TO DO:
+# Jitsi Video Conference / VoIP Capabilities
+#    jitsi:
+# Facebook Messenger Brigde
+# Instagram Messenger Bridge
+
+
+### Firewall-ing BEGIN ###
+
+#    authelia:
+#        build: "./authelia/"
+#        #image: "authelia/authelia"
+#        container_name: authelia
+#        environment:
+#            - TZ=Asia/Kuala_Lumpur
+#        volumes:
+#            - ./authelia:/config
+#        networks:
+#            - authelia
+#        expose:
+#            - 9901
+#        restart: unless-stopped
+#        healthcheck:
+#            disable: true
+#        volumes:
+#            - data-authelia:/config
+#
+#    redis-authelia:
+#        build: "./redis-authelia/"
+#        #image: "redis:alpine"
+#        container_name: redis-authelia
+#        environment:
+#            - TZ=Asia/Kuala_Lumpur
+#        networks:
+#            - authelia
+#        expose:
+#            - 6379
+#        restart: unless-stopped
+#        volumes:
+#            - data-redis-authelia:/data
+
+### Firewall-ing ENDS ###
+
+volumes:
+     data-nginx-pxy-mgr:
+     data-nginx-pxy-mgr-letsencrypt:
+     data-synapse:
+     data-db-postgres-synapse:
+     data-id-ma1sd-etc:
+     data-id-ma1sd-var:
+     data-db-postgres-ma1sd:
+     data-mautrix-telegram:
+     data-db-postgres-mautrix-telegram:
+     data-mautrix-whatsapp:
+     data-db-postgres-mautrix-whatsapp:
+#     data-benkuly-sms:
+#     data-benkuly-sms-config:
+#     data-authelia:
+#     data-redis-authelia:
+
+networks:
+     matrix-nodes:
+        external: true
+     matrix-synapse:
+     matrix-id:
+     matrix-telegram:
+     matrix-whatsapp:
+#     authelia:

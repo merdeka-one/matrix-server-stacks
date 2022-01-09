@@ -1,0 +1,54 @@
+#!/bin/bash
+
+NODE='t2'
+
+# MODE is a deployment for just a single node or multi node. Default is single
+MODE='single'
+FINAL_RC='finalized'
+
+SERVER_NAME='www.example.com'
+SERVER_URL="https://${SERVER_NAME}"
+
+
+
+#Enable User Registration
+HS_ENABLE_REGISTRATION='true'
+#if set to true, user needs a registration shared secret to be able to proceed with user registration
+HS_USE_REG_SHARED_SECRET='false'
+#use password to be shared with others, or simple generate with: pwgen -s 64 1
+HS_REG_SHARED_SECRET="dSHjUa398afi17PdnrSghTJ1upiktqwYlvXCirScLvVILfQEhHU9rptAUVzleCj5"
+HS_FED_WHITELIST=$(cat <<- END
+	  - matrix.mozilla.org
+	  - matrix.example.com 
+END
+)
+HS_MAX_UPLOAD_SIZE='300M'
+HS_RECAPTCHA_PUBLIC_KEY="RECAPTCHA PUBLIC KEY"
+HS_RECAPTCHA_PRIVATE_KEY="RECAPTCHA PRIVATE KEY"
+HS_RECAPTCHA_ENABLE_REG="true"
+HS_SMTP_HOST="smtp.sendgrid.net"
+HS_SMTP_PORT="587"
+HS_SMTP_USER="apikey"
+HS_SMTP_PASS="SG.WHATEVER_APIKEY_PROVIDED_BY_SENDGRID"
+#HS_NOTIF_FROM="%(app)s homeserver <no-reply@${SERVER_NAME}>"
+HS_NOTIF_FROM="%(app)s homeserver <no-reply@example.com>"
+
+
+
+IDM_3PID_EMAIL_IDENTITY=$(cat <<- END
+        # The e-mail to send as.
+        #from: "matrix-identity@example.org"
+        from: "no-reply@example.com"
+        name: "Matrix - Identity"
+END
+)
+
+
+
+# Get your own API keys at https://my.telegram.org/apps
+M_TELGM_API_ID="131655"
+M_TELGM_API_HASH="hashkeybytelegramapps"
+#telegram ip address for test server provided after API registration, not production ip address. Not sure, just leave it
+M_TELGM_IP_TEST_SERVER="149.154.167.10"
+
+

@@ -1,0 +1,67 @@
+#!/bin/bash
+
+ABS_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ROOT_DIR="$(dirname "$ABS_DIR" )"
+
+#DIR=$(basename "$PWD")
+DIR=$(basename "$ROOT_DIR")
+SCRIPTS_DIR="$(echo ${ROOT_DIR}/bash-scripts)"
+TEMPLATES_DIR="$(echo ${SCRIPTS_DIR}/templates)"
+EXT_RESET='empty'
+
+FINAL_RC='finalized'
+
+
+
+DOCKER_ENV="${ROOT_DIR}/.env"
+
+NGINX_PM_SQLITE_FILE="$(echo ${ROOT_DIR}/data/nginx-proxy-manager/database.sqlite)"
+
+
+NGINX_PM_LOCAL_FOLDER="${ROOT_DIR}/data/nginx-proxy-manager/"
+
+SYNAPSE_LOCAL_FOLDER="${ROOT_DIR}/data/synapse/"
+
+MA1SD_LOCAL_FOLDER="${ROOT_DIR}/data/id-ma1sd/"
+
+MAUTRIX_TELEGRAM_LOCAL_FOLDER="${ROOT_DIR}/data/mautrix-telegram/"
+
+MAUTRIX_WHATSAPP_LOCAL_FOLDER="${ROOT_DIR}/data/mautrix-whatsapp/"
+
+
+
+CONTAINER_NAME_NGINX_PM="nginx-pxy-mgr-$NODE"
+
+CONTAINER_NAME_SYNAPSE="synapse-$NODE"
+
+CONTAINER_NAME_DB_SYNAPSE="db-postgres-synapse-$NODE"
+
+CONTAINER_NAME_SYNAPSE_ADMIN="synapse-admin-$NODE"
+
+CONTAINER_NAME_MA1SD="id-ma1sd-$NODE"
+
+CONTAINER_NAME_DB_MA1SD="db-postgres-ma1sd-$NODE"
+
+CONTAINER_NAME_MAUTRIX_TELEGRAM="mautrix-telegram-$NODE"
+
+CONTAINER_NAME_DB_MAUTRIX_TELEGRAM="db-postgres-mautrix-telegram-$NODE"
+
+CONTAINER_NAME_MAUTRIX_WHATSAPP="mautrix-whatsapp-$NODE"
+
+CONTAINER_NAME_DB_MAUTRIX_WHATSAPP="db-postgres-mautrix-whatsapp-$NODE"
+
+
+
+
+
+IMAGE_NAME_NGINX_PXY_MGR_KEYWORD='nginx'
+
+IMAGE_NAME_SYNAPSE_KEYWORD='synapse'
+
+IMAGE_NAME_DB_SYNAPSE_KEYWORD='postgres'
+
+IMAGE_NAME_MA1SD_KEYWORD='ma1sd'
+
+IMAGE_NAME_DB_MA1SD_KEYWORD='postgres'
+
+

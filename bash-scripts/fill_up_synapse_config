@@ -1,0 +1,54 @@
+#!/bin/bash
+
+
+sed -i "s/shared_secret: ''/shared_secret: '${MOD_SHARED_SECRET}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/server_name: ''/server_name: '${SERVER_NAME}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/public_baseurl: ''/public_baseurl: ${SERVER_URL//\//\\/}\//" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/admin_contact: ''/admin_contact: '${HS_ADMIN_CONTACT}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/federation_domain_whitelist: ''/federation_domain_whitelist: \n${HS_FED_WHITELIST//$'\n'/\\n}/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/database: 'HS_DB'/database: \n${HS_DB//$'\n'/\\n}/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/log_config: ''/log_config: '${HS_LOG_CONFIG//\//\\/}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/max_upload_size: ''/max_upload_size: ${HS_MAX_UPLOAD_SIZE}/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/recaptcha_public_key: ''/recaptcha_public_key: '${HS_RECAPTCHA_PUBLIC_KEY}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/recaptcha_private_key: ''/recaptcha_private_key: '${HS_RECAPTCHA_PRIVATE_KEY}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/enable_registration_captcha: ''/enable_registration_captcha: ${HS_RECAPTCHA_ENABLE_REG}/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+if [[ "$HS_USE_REG_SHARED_SECRET"=='true'  ]]; then
+    sed -i "s/\#registration_requires_token: true/registration_requires_token: true/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+    #TEMP=$(echo $HS_REG_SHARED_SECRET)
+    export HS_REG_SHARED_SECRET
+    #export TEMP
+    perl -pi -e 's/.*registration_shared_secret:.*/registration_shared_secret: "$ENV{HS_REG_SHARED_SECRET}"/' ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+fi
+
+sed -i "s/default_identity_server: ''/default_identity_server: '${HS_DEFAULT_IDENTITY_SERVER//\//\\/}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/email: 'HS_3PID_DELEGATES_FOR_EMAIL'/email: '${HS_3PID_DELEGATES_FOR_EMAIL//\//\\/}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/signing_key_path: ''/signing_key_path: '${HS_SIGNING_KEY_PATH//\//\\/}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+TEMP=$(pwgen -c -n 32 1)
+sed -i "s/pepper: \".*\"/pepper: ''/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+sed -i "s/pepper: ''/pepper: '${TEMP}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/smtp_host: ''/smtp_host: ${HS_SMTP_HOST}/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/smtp_port: ''/smtp_port: ${HS_SMTP_PORT}/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/smtp_user: ''/smtp_user: '${HS_SMTP_USER}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/smtp_pass: ''/smtp_pass: '${HS_SMTP_PASS}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/notif_from: ''/notif_from: '${HS_NOTIF_FROM}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}
+
+sed -i "s/client_base_url: ''/client_base_url: '${HS_CLIENT_BASE_URL//\//\\/}'/" ${SYNAPSE_LOCAL_FOLDER}homeserver.yaml-${FINAL_RC}

@@ -1,0 +1,42 @@
+#!/bin/bash
+
+
+push_telegram_config_to_volume () {
+    sudo cp ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml-${FINAL_RC}   ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml
+    sudo chown root:root  ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml
+    sudo chmod 600  ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml
+    sudo cp ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml $(sudo find /var/lib/docker/volumes/${DIR}_data-mautrix-telegram/  -name config.yaml)
+}
+
+push_whatsapp_config_to_volume () {
+    sudo cp ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}   ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml
+    sudo chown root:root  ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml
+    sudo chmod 600  ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml
+    sudo cp ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml $(sudo find /var/lib/docker/volumes/${DIR}_data-mautrix-whatsapp/  -name config.yaml)
+}
+
+fetch_whatsapp_as_hs_tokens () {
+    TEMP=$(sudo cat ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml  | grep -i 'as_token:' | grep -Po 'as_token:\s+\K[^ ]+' | cut -d'"' -f2)
+    export TEMP
+    perl -pi -e 's/M_WHATSP_AS_TOKEN=.*/M_WHATSP_AS_TOKEN="$ENV{TEMP}"/'     ${SCRIPTS_DIR}/bash_user_data_details
+    perl -pi -e 's/as_token:.*/as_token: "$ENV{TEMP}"/' ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+
+    TEMP=$(sudo cat ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml  | grep -i 'hs_token:' | grep -Po 'hs_token:\s+\K[^ ]+' | cut -d'"' -f2)
+    export TEMP
+    perl -pi -e 's/M_WHATSP_HS_TOKEN=.*/M_WHATSP_HS_TOKEN="$ENV{TEMP}"/'      ${SCRIPTS_DIR}/bash_user_data_details
+    perl -pi -e 's/hs_token:.*/hs_token: "$ENV{TEMP}"/' ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+}
+
+fetch_telegram_as_hs_tokens () {
+    TEMP=$(sudo cat ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml  | grep -i 'as_token:' | grep -Po 'as_token:\s+\K[^ ]+' | cut -d'"' -f2)
+    export TEMP
+    perl -pi -e 's/M_TELGM_AS_TOKEN=.*/M_TELGM_AS_TOKEN="$ENV{TEMP}"/'        ${SCRIPTS_DIR}/bash_user_data_details
+    perl -pi -e 's/as_token:.*/as_token: "$ENV{TEMP}"/' ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+
+    TEMP=$(sudo cat ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml  | grep -i 'hs_token:' | grep -Po 'hs_token:\s+\K[^ ]+' | cut -d'"' -f2)
+    export TEMP
+    perl -pi -e 's/M_TELGM_HS_TOKEN=.*/M_TELGM_HS_TOKEN="$ENV{TEMP}"/'        ${SCRIPTS_DIR}/bash_user_data_details
+    perl -pi -e 's/hs_token:.*/hs_token: "$ENV{TEMP}"/' ${MAUTRIX_TELEGRAM_LOCAL_FOLDER}config.yaml-${FINAL_RC}
+}
+
+
