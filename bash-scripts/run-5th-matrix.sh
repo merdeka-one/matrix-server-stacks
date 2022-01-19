@@ -57,6 +57,7 @@ sudo sed -i "s/example.com/${SERVER_NAME}/" ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}regi
 
 #### ENDS ####
 
+sudo chmod 644 ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}registration.yaml
 sudo cp ${MAUTRIX_WHATSAPP_LOCAL_FOLDER}registration.yaml   ${SYNAPSE_LOCAL_FOLDER}as/mautrix-whatsapp/registration.yaml
 
 #### ENDS ####
